@@ -11,10 +11,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('ai_advice', function (Blueprint $table) {
-            $table->id();
-            $table->timestamps();
-        });
+        Schema::create('ai_advices', function (Blueprint $table) {
+        $table->id();
+        $table->foreignId('user_id')->constrained()->cascadeOnDelete();
+        $table->text('advice');
+        $table->timestamp('generated_at');
+        $table->timestamps();
+});
     }
 
     /**
