@@ -3,6 +3,7 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Models\Symptom;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -46,4 +47,18 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+    public function symptoms()
+    {
+        return $this->hasMany(Symptom::class);
+    }
+
+    public function appointments()
+{
+        return $this->hasMany(Appointment::class);
+}
+
+    public function aiAdvices()
+{
+    return $this->hasMany(AiAdvice::class); 
+}
 }
