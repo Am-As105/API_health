@@ -4,48 +4,63 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
 
 class AuthController extends Controller
 {
     public function register(Request $request)
     {
-        $request->validate([
-            'name' => 'required|string',
-            'email' => 'required|email|unique:users',
-            'password' => 'required|min:6'
+        $user = User::create([
+            'name' => $request->name,
+            'email' => $request->email,
+            'password' => Hash::make($request->password),
         ]);
 
-        $user = User::create([
-        'name' => $request->name,
-        'email' => $request->email,
-        'password' => bcrypt($request->password)
-    ]);
+        $token = $user->createToken('token')->plainTextToken;
 
-    $token = $user->createToken('auth_token')->plainTextToken;
-
-    return response()->json([
-        'success' => true,
-        'token' => $token,
-        'user' => $user
-    ]);
-
-     }
-     public function login(Request $request)
-{
-    if (!\Auth::attempt($request->only('email', 'password'))) {
         return response()->json([
-            'success' => false,
-            'message' => 'Invalid credentials'
-        ], 401);
+            'success' => true,
+            'data' => ['user' => $user, 'token' => $token],
+            'message' => 'ok'
+        ]);
     }
 
-    $user = \Auth::user();
-    $token = $user->createToken('auth_token')->plainTextToken;
+    public function login(Request $request)
+    {
+        $user = User::where('email', $request->email)->first();
 
-    return response()->json([
-        'success' => true,
-        'token' => $token,
-        'user' => $user
-    ]);
-  }
+        if (!$user || !Hash::check($request->password, $user->password)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'error'
+            ], 401);
+        }
+
+        $token = $user->createToken('token')->plainTextToken;
+
+        return response()->json([
+            'success' => true,
+            'data' => ['user' => $user, 'token' => $token],
+            'message' => 'ok'
+        ]);
+    }
+
+    public function me(Request $request)
+    {
+        return response()->json([
+            'success' => true,
+            'data' => $request->user(),
+            'message' => 'ok'
+        ]);
+    }
+
+    public function logout(Request $request)
+    {
+        $request->user()->tokens()->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'ok'
+        ]);
+    }
 }
