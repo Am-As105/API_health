@@ -5,109 +5,75 @@ namespace App\Http\Controllers;
 use App\Models\Symptom;
 use Illuminate\Http\Request;
 
-
-
 class SymptomController extends Controller
 {
     public function index(Request $request)
     {
-        $symptoms = $request->user()->symptoms;
+        $symptoms = Symptom::where('user_id', $request->user()->id)->get();
 
         return response()->json([
             'success' => true,
             'data' => $symptoms,
-            'message' => 'List of symptoms'
+            'message' => 'ok'
         ]);
     }
 
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'name' => 'required|string',
-            'severity' => 'required|in:mild,moderate,severe',
-            'description' => 'nullable|string',
-            'date_recorded' => 'required|date',
-            'notes' => 'nullable|string',
+        $symptom = Symptom::create([
+            'user_id' => $request->user()->id,
+            'name' => $request->name,
+            'severity' => $request->severity,
+            'description' => $request->description,
+            'date_recorded' => $request->date_recorded,
+            'notes' => $request->notes,
         ]);
-
-        $symptom = $request->user()->symptoms()->create($validated);
 
         return response()->json([
             'success' => true,
             'data' => $symptom,
-            'message' => 'Symptom created'
+            'message' => 'created'
         ]);
     }
 
     public function show(Request $request, $id)
     {
-        $symptom = Symptom::where('id', $id)
-            ->where('user_id', $request->user()->id)
-            ->first();
-
-        if (!$symptom) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Symptom not found'
-            ], 404);
-        }
+        $symptom = Symptom::where('user_id', $request->user()->id)->find($id);
 
         return response()->json([
             'success' => true,
             'data' => $symptom,
-            'message' => 'Symptom details'
+            'message' => 'ok'
         ]);
     }
 
     public function update(Request $request, $id)
     {
-        $symptom = Symptom::where('id', $id)
-            ->where('user_id', $request->user()->id)
-            ->first();
+        $symptom = Symptom::where('user_id', $request->user()->id)->find($id);
 
-        if (!$symptom) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Symptom not found'
-            ], 404);
-        }
-
-        $validated = $request->validate([
-            'name' => 'sometimes|string',
-            'severity' => 'sometimes|in:mild,moderate,severe',
-            'description' => 'nullable|string',
-            'date_recorded' => 'sometimes|date',
-            'notes' => 'nullable|string',
+        $symptom->update([
+            'name' => $request->name,
+            'severity' => $request->severity,
+            'description' => $request->description,
+            'date_recorded' => $request->date_recorded,
+            'notes' => $request->notes,
         ]);
-
-        $symptom->update($validated);
 
         return response()->json([
             'success' => true,
             'data' => $symptom,
-            'message' => 'Symptom updated'
+            'message' => 'updated'
         ]);
     }
 
     public function destroy(Request $request, $id)
     {
-        $symptom = Symptom::where('id', $id)
-            ->where('user_id', $request->user()->id)
-            ->first();
-
-        if (!$symptom) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Symptom not found'
-            ], 404);
-        }
-
+        $symptom = Symptom::where('user_id', $request->user()->id)->find($id);
         $symptom->delete();
 
         return response()->json([
             'success' => true,
-            'message' => 'Symptom deleted'
+            'message' => 'deleted'
         ]);
     }
-}
 }
