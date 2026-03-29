@@ -23,9 +23,5 @@ class AIController extends Controller
         return response()->json(['success'=>true,'data'=>$advice,'message'=>'ok']);
     }
 
-    public function history(Request $request)
-    {
-        $history = Advice::where('user_id',$request->user()->id)->get();
-        return response()->json(['success'=>true,'data'=>$history,'message'=>'ok']);
-    }
+   
 }
