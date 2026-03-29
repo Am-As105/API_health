@@ -7,53 +7,41 @@ use Illuminate\Http\Request;
 
 class AppointmentController extends Controller
 {
-    public function index(Request $request )
+    public function index(Request $request)
     {
-        $appointments = Appointment::with('doctor')
-            ->where('user_id', $request->user()->id)
-            ->get();
-             return response()->json([
-            'success' => true,
-            'data' => $appointments,
-            'message' => 'List of appointments'
-        ]);
+        $appointments = Appointment::where('user_id',$request->user()->id)->get();
+        return response()->json(['success'=>true,'data'=>$appointments,'message'=>'ok']);
     }
+
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'doctor_id' => 'required|exists:doctors,id',
-            'appointment_date' => 'required|date|after:now',
-            'notes' => 'nullable|string',
-        ]);
-
         $appointment = Appointment::create([
-            'user_id' => $request->user()->id,
-            'doctor_id' => $validated['doctor_id'],
-            'appointment_date' => $validated['appointment_date'],
-            'notes' => $validated['notes'] ?? null,
-            'status' => 'pending'
+            'user_id'=>$request->user()->id,
+            'doctor_id'=>$request->doctor_id,
+            'appointment_date'=>$request->appointment_date,
+            'status'=>$request->status ?? 'pending',
+            'notes'=>$request->notes,
         ]);
-        return response()->json([
-            'success' => true,
-            'data' => $appointment,
-            'message' => 'Appointment created'
-        ]);
+        return response()->json(['success'=>true,'data'=>$appointment,'message'=>'created']);
     }
-    public function show (Request $request , $id)
+
+    public function show(Request $request,$id)
     {
-        $appointment = Appointment::with('doctor')
-            ->where('id', $id)
-            ->where('user_id', $request->user()->id)
-            ->first();
+        $appointment = Appointment::where('user_id',$request->user()->id)->find($id);
+        return response()->json(['success'=>true,'data'=>$appointment,'message'=>'ok']);
+    }
 
-        if (!$appointment)
-        {
-            return response()->([
-                
+    public function update(Request $request,$id)
+    {
+        $appointment = Appointment::where('user_id',$request->user()->id)->find($id);
+        $appointment->update($request->only(['doctor_id','appointment_date','status','notes']));
+        return response()->json(['success'=>true,'data'=>$appointment,'message'=>'updated']);
+    }
 
-                
-            ])
-        }
-
+    public function destroy(Request $request,$id)
+    {
+        $appointment = Appointment::where('user_id',$request->user()->id)->find($id);
+        $appointment->delete();
+        return response()->json(['success'=>true,'message'=>'deleted']);
     }
 }
